@@ -21,8 +21,12 @@ jobs:
         mkdir -p ~/.kube
         echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
 
+    # 👇 ADD HERE
     - name: Terraform Init
       run: terraform init
+      working-directory: ./k8s-terraform
 
+    # 👇 ADD HERE ALSO
     - name: Terraform Apply
       run: terraform apply -auto-approve
+      working-directory: ./k8s-terraform
