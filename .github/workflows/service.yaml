@@ -1,3 +1,46 @@
+# name: Terraform MongoDB Deploy
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout Code
+#       uses: actions/checkout@v3
+
+#     - name: Setup Terraform
+#       uses: hashicorp/setup-terraform@v2
+
+#     # 🔥 Install Minikube
+#     - name: Install Minikube
+#       run: |
+#         curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+#         sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+#     # 🔥 Start Minikube
+#     - name: Start Minikube
+#       run: |
+#         minikube start --driver=docker
+
+#     # 🔥 Set kubeconfig automatically
+#     - name: Set kubectl context
+#       run: |
+#         kubectl config use-context minikube
+
+#     # 🔥 Terraform Init
+#     - name: Terraform Init
+#       run: terraform init
+#       working-directory: ./k8s-terraform
+
+#     # 🔥 Terraform Apply
+#     - name: Terraform Apply
+#       run: terraform apply -auto-approve
+#       working-directory: ./k8s-terraform
 name: Terraform MongoDB Deploy
 
 on:
@@ -13,20 +56,36 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
+    # Install kubectl
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+
+    # 🔥 Create Kubernetes cluster (FAST + RELIABLE)
+    - name: Create Kind Cluster
+      uses: helm/kind-action@v1
+
+    # Setup Terraform
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
 
-    - name: Setup Kubeconfig
-      run: |
-        mkdir -p ~/.kube
-        echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-
-    # 👇 ADD HERE
+    # Terraform Init
     - name: Terraform Init
       run: terraform init
       working-directory: ./k8s-terraform
 
-    # 👇 ADD HERE ALSO
+    # Terraform Plan
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ./k8s-terraform
+
+    # Terraform Apply
     - name: Terraform Apply
       run: terraform apply -auto-approve
       working-directory: ./k8s-terraform
+
+    # 🔥 Verify Deployment
+    - name: Check Pods
+      run: kubectl get pods
+
+    - name: Check Services
+      run: kubectl get svc
